@@ -44,7 +44,14 @@ class BaseSaver:
         return data
 
 
-class Author(APIView):
+class GenericCRUD(APIView):
+    def get(self, request):
+        objects = self.model.objects.all()
+        objects_serialized = self.serializer(objects, many=True)
+        return Response(objects_serialized.data)
+
+
+class Author(GenericCRUD):
     def __init__(self):
         self.serializer = AuthorSerializer
         self.model = Authors
@@ -52,7 +59,12 @@ class Author(APIView):
         self.base_saver = BaseSaver(
             self.serializer, self.model, self.filter_keys)
 
-    def post(self, request):
+    def get(self, request):
+        authors = self.model.objects.all()
+        authors_serialized = self.serializer(authors, many=True)
+        return Response(authors_serialized.data)
+
+    def post(self, request, **kwargs):
         if (data := self.base_saver.save_in_model(request.data)):
 
             return Response({"message": f"Autor/a {data.autor} fue agregado/a"})
@@ -60,7 +72,7 @@ class Author(APIView):
         return Response({"message": "Hubo un error al agregar al autor"})
 
 
-class Category(APIView):
+class Category(GenericCRUD):
     def __init__(self):
         self.serializer = CategorySerializer
         self.model = Categories
@@ -76,7 +88,7 @@ class Category(APIView):
         return Response({"message": "Hubo un error al agregar la categoría"})
 
 
-class Publisher(APIView):
+class Publisher(GenericCRUD):
     def __init__(self):
         self.serializer = PublisherSerializer
         self.model = Publishers
@@ -111,10 +123,11 @@ class Book(APIView):
 class BooksFinderBase(APIView):
     def get_books_by_key(self, value, key):
         normalized_value = unidecode(value.lower())
-        books = [book.titulo for book in Books.objects.all(
-        ) if normalized_value == unidecode(getattr(getattr(book, key), key).lower())]
+        books = [book for book in Books.objects.all() if normalized_value == unidecode(
+            getattr(getattr(book, key), key).lower())]
+        books_serialized = BookSerializer(books, many=True)
 
-        return books
+        return books_serialized.data
 
 
 class BooksByAuthor(BooksFinderBase):
@@ -134,5 +147,12 @@ class BooksByCategory(BooksFinderBase):
 class BooksByPublisher(BooksFinderBase):
     def get(self, request, publisher):
         books = self.get_books_by_key(publisher, 'editorial')
+
+        return Response(books)
+
+
+class AuthorsByCategory(BooksFinderBase):
+    def get(self, request, category):
+        books = self.get_books_by_key(category, 'categoria')
 
         return Response(books)

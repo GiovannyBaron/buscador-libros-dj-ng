@@ -8,22 +8,27 @@ from .models import Authors, Books, Categories, Publishers
 class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Authors
-        fields = ['autor']
+        fields = ['id', 'autor']
 
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Categories
-        fields = ['categoria']
+        fields = ['id', 'categoria']
 
 
 class PublisherSerializer(serializers.ModelSerializer):
     class Meta:
         model = Publishers
-        fields = ['editorial']
+        fields = ['id', 'editorial']
 
 
 class BookSerializer(serializers.ModelSerializer):
+    # It can be both options
+    autor = serializers.CharField(source='autor.autor')
+    categoria = serializers.StringRelatedField()
+    editorial = serializers.StringRelatedField()
+
     class Meta:
         model = Books
         fields = '__all__'
