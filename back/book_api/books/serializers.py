@@ -24,11 +24,13 @@ class PublisherSerializer(serializers.ModelSerializer):
 
 
 class BookSerializer(serializers.ModelSerializer):
-    # It can be both options
-    autor = serializers.CharField(source='autor.autor')
-    categoria = serializers.StringRelatedField()
-    editorial = serializers.StringRelatedField()
-
     class Meta:
         model = Books
         fields = '__all__'
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['autor'] = instance.autor.autor
+        representation['categoria'] = instance.categoria.categoria
+        representation['editorial'] = instance.editorial.editorial
+        return representation
