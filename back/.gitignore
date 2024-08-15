@@ -1,2 +1,4 @@
 __pycache__/
 poetry.lock
+static
+book_api/books/templates/books/index.html
